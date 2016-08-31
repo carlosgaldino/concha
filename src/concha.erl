@@ -2,10 +2,11 @@
 
 -define(HASH, sha256).
 
--type ring() :: [{binary(), term()}].
+-type ring() :: {integer(), [{binary(), term()}]}.
 
 %% API exports
 -export([new/1,
+         new/2,
          lookup/2,
          add/2,
          remove/2]).
@@ -15,30 +16,42 @@
 %%====================================================================
 -spec new([term()]) -> ring().
 new(Nodes) ->
-    Positions = lists:map(fun position_node/1, Nodes),
-    lists:keysort(1, Positions).
+    new(1, Nodes).
+
+-spec new(integer(), [term()]) -> ring().
+new(VNodesSize, Nodes) ->
+    Ring = build_ring([position_node(VNodesSize, Node) || Node <- Nodes]),
+    {VNodesSize, Ring}.
 
 -spec lookup(term(), ring()) -> term().
-lookup(Key, Ring) ->
+lookup(Key, {_VNodesSize, Ring}) ->
     HKey = chash(Key),
     find_node(HKey, Ring).
 
 -spec add(term(), ring()) -> ring().
-add(Node, Ring) ->
-    lists:keysort(1, [position_node(Node) | Ring]).
+add(Node, {VNodesSize, Ring}) ->
+    NewRing = build_ring([position_node(VNodesSize, Node) | Ring]),
+    {VNodesSize, NewRing}.
 
 -spec remove(term(), ring()) -> ring().
-remove(Node, Ring) ->
-    lists:keydelete(Node, 2, Ring).
+remove(Node, {VNodesSize, Ring}) ->
+    {VNodesSize, build_ring(remove(Node, Ring, []))}.
 
 %%====================================================================
 %% Internal functions
 %%====================================================================
+build_ring(Nodes) ->
+    lists:keysort(1, lists:flatten(Nodes)).
+
 chash(X) -> crypto:hash(?HASH, term_to_binary(X)).
 
--spec position_node(term()) -> {binary(), term()}.
-position_node(Node) ->
-    {chash(Node), Node}.
+chash(X, Y) ->
+    XBin = term_to_binary(X),
+    YBin = term_to_binary(Y),
+    crypto:hash(?HASH, <<XBin/binary, YBin/binary>>).
+
+position_node(VNodesSize, Node) ->
+    [{chash(Node, Idx), Node} || Idx <- lists:seq(1, VNodesSize)].
 
 find_node(Key, Ring) ->
     find_node(Key, Ring, Ring).
@@ -51,3 +64,10 @@ find_node(Key, [{Position, Node} | T], Ring) ->
         true -> Node;
         false -> find_node(Key, T, Ring)
     end.
+
+remove(_Node, [], Acc) ->
+    Acc;
+remove(Node, [{_Pos, Node} | T], Acc) ->
+    remove(Node, T, Acc);
+remove(Node, [X | T], Acc) ->
+    remove(Node, T, [X | Acc]).
