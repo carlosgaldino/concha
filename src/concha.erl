@@ -25,7 +25,7 @@ lookup(Key, Ring) ->
 
 -spec add(term(), ring()) -> ring().
 add(Node, Ring) ->
-    lists:keysort(1, [{chash(Node), Node} | Ring]).
+    lists:keysort(1, [position_node(Node) | Ring]).
 
 -spec remove(term(), ring()) -> ring().
 remove(Node, Ring) ->
@@ -38,8 +38,7 @@ chash(X) -> crypto:hash(?HASH, term_to_binary(X)).
 
 -spec position_node(term()) -> {binary(), term()}.
 position_node(Node) ->
-    Position = chash(Node),
-    {Position, Node}.
+    {chash(Node), Node}.
 
 find_node(Key, Ring) ->
     find_node(Key, Ring, Ring).
