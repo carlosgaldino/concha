@@ -5,25 +5,21 @@
 -type ring() :: {integer(), gb_trees:tree()}.
 
 %% API exports
--export([new/1,
-         new/2,
+-export([add/2,
          lookup/2,
-         add/2,
-         size/1,
          members/1,
-         remove/2]).
+         new/1,
+         new/2,
+         remove/2,
+         size/1]).
 
 %%====================================================================
 %% API functions
 %%====================================================================
--spec new([term()]) -> ring().
-new(Nodes) ->
-    new(1, Nodes).
-
--spec new(integer(), [term()]) -> ring().
-new(VNodesSize, Nodes) ->
-    Ring = build_ring([position_node(VNodesSize, Node) || Node <- Nodes]),
-    {VNodesSize, Ring}.
+-spec add(term(), ring()) -> ring().
+add(Node, {VNodesSize, Ring}) ->
+    NewRing = build_ring(position_node(VNodesSize, Node), Ring),
+    {VNodesSize, NewRing}.
 
 -spec lookup(term(), ring()) -> term() | {error, empty_ring}.
 lookup(Key, {_VNodesSize, Ring}) ->
@@ -38,10 +34,18 @@ lookup(Key, {_VNodesSize, Ring}) ->
             end
     end.
 
--spec add(term(), ring()) -> ring().
-add(Node, {VNodesSize, Ring}) ->
-    NewRing = build_ring(position_node(VNodesSize, Node), Ring),
-    {VNodesSize, NewRing}.
+-spec members(ring()) -> [term()].
+members({_VNodesSize, Ring}) ->
+    lists:usort(gb_trees:values(Ring)).
+
+-spec new([term()]) -> ring().
+new(Nodes) ->
+    new(1, Nodes).
+
+-spec new(integer(), [term()]) -> ring().
+new(VNodesSize, Nodes) ->
+    Ring = build_ring([position_node(VNodesSize, Node) || Node <- Nodes]),
+    {VNodesSize, Ring}.
 
 -spec remove(term(), ring()) -> ring().
 remove(Node, {VNodesSize, Ring}) ->
@@ -52,10 +56,6 @@ remove(Node, {VNodesSize, Ring}) ->
 -spec size(ring()) -> integer().
 size({_VNodesSize, Ring}) ->
     gb_trees:size(Ring).
-
--spec members(ring()) -> [term()].
-members({_VNodesSize, Ring}) ->
-    lists:usort(gb_trees:values(Ring)).
 
 %%====================================================================
 %% Internal functions
