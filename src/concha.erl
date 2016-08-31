@@ -2,7 +2,7 @@
 
 -define(HASH, sha256).
 
--type ring() :: {integer(), [{binary(), term()}]}.
+-type ring() :: {integer(), gb_trees:tree()}.
 
 %% API exports
 -export([new/1,
@@ -26,22 +26,31 @@ new(VNodesSize, Nodes) ->
 -spec lookup(term(), ring()) -> term().
 lookup(Key, {_VNodesSize, Ring}) ->
     HKey = chash(Key),
-    find_node(HKey, Ring).
+    Iter = gb_trees:iterator_from(HKey, Ring),
+    case gb_trees:next(Iter) of
+        {_, Node, _} -> Node;
+        none -> element(2, gb_trees:smallest(Ring))
+    end.
 
 -spec add(term(), ring()) -> ring().
 add(Node, {VNodesSize, Ring}) ->
-    NewRing = build_ring([position_node(VNodesSize, Node) | Ring]),
+    NewRing = build_ring(position_node(VNodesSize, Node), Ring),
     {VNodesSize, NewRing}.
 
 -spec remove(term(), ring()) -> ring().
 remove(Node, {VNodesSize, Ring}) ->
-    {VNodesSize, build_ring(remove(Node, Ring, []))}.
+    Positions = position_node(VNodesSize, Node),
+    NewRing = lists:foldl(fun({Pos, _}, Tree) -> gb_trees:delete_any(Pos, Tree) end, Ring, Positions),
+    {VNodesSize, NewRing}.
 
 %%====================================================================
 %% Internal functions
 %%====================================================================
 build_ring(Nodes) ->
-    lists:keysort(1, lists:flatten(Nodes)).
+    gb_trees:from_orddict(lists:keysort(1, lists:flatten(Nodes))).
+
+build_ring(Nodes, Ring) ->
+    lists:foldl(fun({Pos, Node}, Tree) -> gb_trees:insert(Pos, Node, Tree) end, Ring, Nodes).
 
 chash(X) -> crypto:hash(?HASH, term_to_binary(X)).
 
@@ -52,22 +61,3 @@ chash(X, Y) ->
 
 position_node(VNodesSize, Node) ->
     [{chash(Node, Idx), Node} || Idx <- lists:seq(1, VNodesSize)].
-
-find_node(Key, Ring) ->
-    find_node(Key, Ring, Ring).
-
-find_node(_Key, [], Ring) ->
-    {_Pos, Node} = hd(Ring),
-    Node;
-find_node(Key, [{Position, Node} | T], Ring) ->
-    case Position >= Key of
-        true -> Node;
-        false -> find_node(Key, T, Ring)
-    end.
-
-remove(_Node, [], Acc) ->
-    Acc;
-remove(Node, [{_Pos, Node} | T], Acc) ->
-    remove(Node, T, Acc);
-remove(Node, [X | T], Acc) ->
-    remove(Node, T, [X | Acc]).
