@@ -28,11 +28,14 @@
 %%====================================================================
 %% API functions
 %%====================================================================
+
+%% @doc Adds a node to the ring.
 -spec add(node_entry(), Ring::ring()) -> ring().
 add(Node, {NumVNodes, InnerRing}) ->
     NewInnerRing = build_ring(position_node(NumVNodes, Node), InnerRing),
     {NumVNodes, NewInnerRing}.
 
+%% @doc Returns the node associated with the given key. Returns an error if the ring is empty.
 -spec lookup(key(), Ring::ring()) -> node_entry() | {error, empty_ring}.
 lookup(Key, {_NumVNodes, InnerRing}) ->
     case gb_trees:is_empty(InnerRing) of
@@ -46,25 +49,30 @@ lookup(Key, {_NumVNodes, InnerRing}) ->
             end
     end.
 
+%% @doc Returns the ordered list of nodes in the ring.
 -spec members(Ring::ring()) -> nodes().
 members({_NumVNodes, InnerRing}) ->
     lists:usort(gb_trees:values(InnerRing)).
 
+%% @doc Creates a new ring without virtual nodes.
 -spec new(nodes()) -> ring().
 new(Nodes) ->
     new(1, Nodes).
 
+%% @doc Creates a new ring with `NumVNodes' of virtual nodes.
 -spec new(num_vnodes(), nodes()) -> ring().
 new(NumVNodes, Nodes) ->
     Ring = build_ring(lists:flatten([position_node(NumVNodes, Node) || Node <- Nodes])),
     {NumVNodes, Ring}.
 
+%% @doc Removes the given node from the ring.
 -spec remove(node_entry(), Ring::ring()) -> ring().
 remove(Node, {NumVNodes, InnerRing}) ->
     Positions = position_node(NumVNodes, Node),
     NewInnerRing = lists:foldl(fun({Pos, _}, Tree) -> gb_trees:delete_any(Pos, Tree) end, InnerRing, Positions),
     {NumVNodes, NewInnerRing}.
 
+%% @doc Returns the number of nodes (including virtual nodes) in the ring.
 -spec size(Ring::ring()) -> non_neg_integer().
 size({_NumVNodes, InnerRing}) ->
     gb_trees:size(InnerRing).
