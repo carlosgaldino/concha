@@ -9,6 +9,7 @@
          new/2,
          lookup/2,
          add/2,
+         size/1,
          remove/2]).
 
 %%====================================================================
@@ -46,6 +47,10 @@ remove(Node, {VNodesSize, Ring}) ->
     Positions = position_node(VNodesSize, Node),
     NewRing = lists:foldl(fun({Pos, _}, Tree) -> gb_trees:delete_any(Pos, Tree) end, Ring, Positions),
     {VNodesSize, NewRing}.
+
+-spec size(ring()) -> integer().
+size({_VNodesSize, Ring}) ->
+    gb_trees:size(Ring).
 
 %%====================================================================
 %% Internal functions

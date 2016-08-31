@@ -73,3 +73,9 @@ remove_with_vnodes_test() ->
     ?assertEqual("serverC", concha:lookup("saturn", Ring)),
     ?assertEqual("serverD", concha:lookup("europa", Ring)),
     ?assertEqual("serverC", concha:lookup("pluto", Ring)).
+
+size_test() ->
+    ?assertEqual(0, concha:size(concha:new([]))),
+    Nodes = ["serverA", "serverB", "serverC", "serverD"],
+    ?assertEqual(4, concha:size(concha:new(Nodes))),
+    ?assertEqual(20, concha:size(concha:new(5, Nodes))).
