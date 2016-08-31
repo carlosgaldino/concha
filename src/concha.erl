@@ -2,6 +2,7 @@
 
 %% API exports
 -export([add/2,
+         contains/2,
          lookup/2,
          members/1,
          new/1,
@@ -34,6 +35,11 @@
 add(Node, {NumVNodes, InnerRing}) ->
     NewInnerRing = build_ring(position_node(NumVNodes, Node), InnerRing),
     {NumVNodes, NewInnerRing}.
+
+%% @doc Returns true if the given node is present in the ring, otherwise false.
+-spec contains(node_entry(), Ring :: ring()) -> boolean().
+contains(Node, Ring) ->
+    lists:member(Node, members(Ring)).
 
 %% @doc Returns the node associated with the given key. Returns an error if the ring is empty.
 -spec lookup(key(), Ring :: ring()) -> node_entry() | {error, empty_ring}.

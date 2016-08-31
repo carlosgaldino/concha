@@ -85,3 +85,11 @@ members_test() ->
     Nodes = ["serverA", "serverB", "serverC", "serverD"],
     ?assertEqual(Nodes, concha:members(concha:new(Nodes))),
     ?assertEqual(Nodes, concha:members(concha:new(5, Nodes))).
+
+contains_test() ->
+    ?assertEqual(false, concha:contains("serverA", concha:new([]))),
+    Nodes = ["serverA", "serverB", "serverC", "serverD"],
+    ?assertEqual(true, concha:contains("serverD", concha:new(Nodes))),
+    ?assertEqual(false, concha:contains("serverE", concha:new(Nodes))),
+    ?assertEqual(true, concha:contains("serverD", concha:new(5, Nodes))),
+    ?assertEqual(false, concha:contains("serverE", concha:new(5, Nodes))).
