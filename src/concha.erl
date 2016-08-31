@@ -23,13 +23,17 @@ new(VNodesSize, Nodes) ->
     Ring = build_ring([position_node(VNodesSize, Node) || Node <- Nodes]),
     {VNodesSize, Ring}.
 
--spec lookup(term(), ring()) -> term().
+-spec lookup(term(), ring()) -> term() | {error, empty_ring}.
 lookup(Key, {_VNodesSize, Ring}) ->
-    HKey = chash(Key),
-    Iter = gb_trees:iterator_from(HKey, Ring),
-    case gb_trees:next(Iter) of
-        {_, Node, _} -> Node;
-        none -> element(2, gb_trees:smallest(Ring))
+    case gb_trees:is_empty(Ring) of
+        true -> {error, empty_ring};
+        false ->
+            HKey = chash(Key),
+            Iter = gb_trees:iterator_from(HKey, Ring),
+            case gb_trees:next(Iter) of
+                {_, Node, _} -> Node;
+                none -> element(2, gb_trees:smallest(Ring))
+            end
     end.
 
 -spec add(term(), ring()) -> ring().

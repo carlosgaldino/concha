@@ -32,6 +32,12 @@ lookup_with_vnodes_test() ->
     ?assertEqual("serverD", concha:lookup("europa", Ring)),
     ?assertEqual("serverC", concha:lookup("pluto", Ring)).
 
+lookup_empty_ring_test() ->
+    Ring = concha:new([]),
+    ?assertEqual({error, empty_ring}, concha:lookup("mars", Ring)),
+    Ring2 = concha:new(3, []),
+    ?assertEqual({error, empty_ring}, concha:lookup("mars", Ring2)).
+
 add_test() ->
     Nodes = ["serverA", "serverB", "serverC", "serverD"],
     %% serverE will lie between serverC and serverB
