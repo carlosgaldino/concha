@@ -10,6 +10,7 @@
          lookup/2,
          add/2,
          size/1,
+         members/1,
          remove/2]).
 
 %%====================================================================
@@ -51,6 +52,10 @@ remove(Node, {VNodesSize, Ring}) ->
 -spec size(ring()) -> integer().
 size({_VNodesSize, Ring}) ->
     gb_trees:size(Ring).
+
+-spec members(ring()) -> [term()].
+members({_VNodesSize, Ring}) ->
+    lists:usort(gb_trees:values(Ring)).
 
 %%====================================================================
 %% Internal functions

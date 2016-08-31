@@ -79,3 +79,9 @@ size_test() ->
     Nodes = ["serverA", "serverB", "serverC", "serverD"],
     ?assertEqual(4, concha:size(concha:new(Nodes))),
     ?assertEqual(20, concha:size(concha:new(5, Nodes))).
+
+members_test() ->
+    ?assertEqual([], concha:members(concha:new([]))),
+    Nodes = ["serverA", "serverB", "serverC", "serverD"],
+    ?assertEqual(Nodes, concha:members(concha:new(Nodes))),
+    ?assertEqual(Nodes, concha:members(concha:new(5, Nodes))).
