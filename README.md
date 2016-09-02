@@ -68,4 +68,4 @@ true
 Although the examples use strings for both nodes and keys, the library does not
 require them to be of a specific type. They can be any term.
 
-For more information about usage take a look at the docs: LINK FOR DOCS.
+For more information about usage [take a look at the docs](https://hexdocs.pm/concha/concha.html).

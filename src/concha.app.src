@@ -1,5 +1,5 @@
 {application, concha,
- [{description, "A consistent hashing library"},
+ [{description, "A consistent hashing library."},
   {vsn, "0.1.0"},
   {registered, []},
   {applications,
@@ -8,7 +8,7 @@
     crypto
    ]},
   {env,[]},
-  {modules, []},
+  {modules, [concha]},
 
   {maintainers, ["Carlos Galdino"]},
   {licenses, ["MIT"]},
