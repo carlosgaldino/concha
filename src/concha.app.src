@@ -1,15 +1,16 @@
 {application, concha,
- [{description, "An OTP library"},
+ [{description, "A consistent hashing library"},
   {vsn, "0.1.0"},
   {registered, []},
   {applications,
    [kernel,
-    stdlib
+    stdlib,
+    crypto
    ]},
   {env,[]},
   {modules, []},
 
-  {maintainers, []},
-  {licenses, []},
-  {links, []}
+  {maintainers, ["Carlos Galdino"]},
+  {licenses, ["MIT"]},
+  {links, [{"GitHub", "https://github.com/carlosgaldino/concha"}]}
  ]}.

@@ -1,3 +1,6 @@
+%%% @doc A consistent hashing library. The output range of the ring is the same
+%%% as what SHA-256 produces. Nodes and keys are mapped to the ring using SHA-256 as well.
+%%% @end
 -module(concha).
 
 %% API exports
@@ -30,7 +33,7 @@
 %% API functions
 %%====================================================================
 
-%% @doc Adds a node to the ring.
+%% @doc Adds a node (and its virtual nodes) to the ring. Returns the new ring.
 -spec add(node_entry(), Ring :: ring()) -> ring().
 add(Node, {NumVNodes, InnerRing}) ->
     NewInnerRing = build_ring(position_node(NumVNodes, Node), InnerRing),
@@ -74,7 +77,7 @@ new(NumVNodes, Nodes) ->
     Ring = build_ring(lists:flatten([position_node(NumVNodes, Node) || Node <- Nodes])),
     {NumVNodes, Ring}.
 
-%% @doc Removes the given node from the ring.
+%% @doc Removes the given node (and its virtual nodes) from the ring if the node is present in the ring, otherwise does nothing. Returns the new ring.
 -spec remove(node_entry(), Ring :: ring()) -> ring().
 remove(Node, {NumVNodes, InnerRing}) ->
     Positions = position_node(NumVNodes, Node),
