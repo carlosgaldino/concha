@@ -38,8 +38,11 @@ add(Node, {NumVNodes, InnerRing}) ->
 
 %% @doc Returns true if the given node is present in the ring, otherwise false.
 -spec contains(node_entry(), Ring :: ring()) -> boolean().
-contains(Node, Ring) ->
-    lists:member(Node, members(Ring)).
+contains(Node, {_NumVNodes, InnerRing}) ->
+    case gb_trees:lookup(chash(Node), InnerRing) of
+        none -> false;
+        {value, _} -> true
+    end.
 
 %% @doc Returns the node associated with the given key. Returns an error if the ring is empty.
 -spec lookup(key(), Ring :: ring()) -> node_entry() | {error, empty_ring}.
@@ -101,6 +104,12 @@ chash(X, Y) ->
     YBin = term_to_binary(Y),
     crypto:hash(?HASH, <<XBin/binary, YBin/binary>>).
 
+position_node(Node) ->
+    {chash(Node), Node}.
+
 -spec position_node(num_vnodes(), node_entry()) -> positions().
+position_node(1, Node) ->
+    [position_node(Node)];
 position_node(NumVNodes, Node) ->
-    [{chash(Node, Idx), Node} || Idx <- lists:seq(1, NumVNodes)].
+    Replicas = [{chash(Node, Idx), Node} || Idx <- lists:seq(1, NumVNodes - 1)],
+    [position_node(Node) | Replicas].

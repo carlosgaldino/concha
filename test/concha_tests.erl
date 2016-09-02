@@ -14,65 +14,66 @@ new_ring_with_vnodes_test() ->
     ?assertEqual(Ring1, Ring2).
 
 lookup_test() ->
-    %% the distribution for the following keys will be: serverC, serverB, serverD, serverA.
+    %% the distribution for the following nodes will be: serverC, serverD, serverB, serverA.
     Nodes = ["serverA", "serverB", "serverC", "serverD"],
     Ring = concha:new(Nodes),
-    ?assertEqual("serverB", concha:lookup("mars", Ring)),
-    ?assertEqual("serverD", concha:lookup("venus", Ring)),
-    ?assertEqual("serverB", concha:lookup("saturn", Ring)),
-    %% "pluto" maps to the interval between the last node (serverA in this case) and the first (serverC).
-    ?assertEqual("serverC", concha:lookup("pluto", Ring)).
+    ?assertEqual("serverB", concha:lookup("Mars", Ring)),
+    ?assertEqual("serverB", concha:lookup("Jupiter", Ring)),
+    %% "Europa" maps to the interval between the last node (serverA in this case) and the first (serverC).
+    ?assertEqual("serverC", concha:lookup("Europa", Ring)),
+    %% keys should fall in the partition where node id is >= key id
+    ?assertEqual("serverA", concha:lookup("serverA", Ring)).
 
 lookup_with_vnodes_test() ->
     Nodes = ["serverA", "serverB", "serverC", "serverD"],
     Ring = concha:new(3, Nodes),
-    ?assertEqual("serverB", concha:lookup("mars", Ring)),
-    ?assertEqual("serverA", concha:lookup("venus", Ring)),
-    ?assertEqual("serverB", concha:lookup("saturn", Ring)),
-    ?assertEqual("serverD", concha:lookup("europa", Ring)),
-    ?assertEqual("serverC", concha:lookup("pluto", Ring)).
+    ?assertEqual("serverB", concha:lookup("Mars", Ring)),
+    ?assertEqual("serverA", concha:lookup("Venus", Ring)),
+    ?assertEqual("serverB", concha:lookup("Saturn", Ring)),
+    ?assertEqual("serverD", concha:lookup("Europa", Ring)),
+    ?assertEqual("serverB", concha:lookup("Jupiter", Ring)),
+    %% keys should fall in the partition where node id is >= key id
+    ?assertEqual("serverA", concha:lookup("serverA", Ring)).
 
 lookup_empty_ring_test() ->
     Ring = concha:new([]),
-    ?assertEqual({error, empty_ring}, concha:lookup("mars", Ring)),
+    ?assertEqual({error, empty_ring}, concha:lookup("Mars", Ring)),
     Ring2 = concha:new(3, []),
-    ?assertEqual({error, empty_ring}, concha:lookup("mars", Ring2)).
+    ?assertEqual({error, empty_ring}, concha:lookup("Mars", Ring2)).
 
 add_test() ->
     Nodes = ["serverA", "serverB", "serverC", "serverD"],
-    %% serverE will lie between serverC and serverB
+    %% serverE will lie between serverD and serverB
     Ring = concha:add("serverE", concha:new(Nodes)),
-    ?assertEqual("serverE", concha:lookup("mars", Ring)),
-    ?assertEqual("serverD", concha:lookup("venus", Ring)),
-    ?assertEqual("serverE", concha:lookup("saturn", Ring)),
-    ?assertEqual("serverC", concha:lookup("pluto", Ring)).
+    ?assertEqual("serverB", concha:lookup("Mars", Ring)),
+    ?assertEqual("serverA", concha:lookup("Venus", Ring)),
+    ?assertEqual("serverE", concha:lookup("Jupiter", Ring)),
+    ?assertEqual("serverC", concha:lookup("Europa", Ring)).
 
 add_with_vnodes_test() ->
     Nodes = ["serverA", "serverB", "serverC", "serverD"],
     Ring = concha:add("serverE", concha:new(3, Nodes)),
-    ?assertEqual("serverB", concha:lookup("mars", Ring)),
-    ?assertEqual("serverA", concha:lookup("venus", Ring)),
-    ?assertEqual("serverB", concha:lookup("saturn", Ring)),
-    ?assertEqual("serverD", concha:lookup("europa", Ring)),
-    ?assertEqual("serverC", concha:lookup("pluto", Ring)).
+    ?assertEqual("serverB", concha:lookup("Mars", Ring)),
+    ?assertEqual("serverA", concha:lookup("Venus", Ring)),
+    ?assertEqual("serverE", concha:lookup("Jupiter", Ring)),
+    ?assertEqual("serverD", concha:lookup("Europa", Ring)).
 
 remove_test() ->
     Nodes = ["serverA", "serverB", "serverC", "serverD"],
     Ring = concha:remove("serverB", concha:new(Nodes)),
-    ?assertEqual("serverD", concha:lookup("mars", Ring)),
-    ?assertEqual("serverD", concha:lookup("venus", Ring)),
-    ?assertEqual("serverD", concha:lookup("saturn", Ring)),
-    ?assertEqual("serverD", concha:lookup("europa", Ring)),
-    ?assertEqual("serverC", concha:lookup("pluto", Ring)).
+    ?assertEqual("serverA", concha:lookup("Mars", Ring)),
+    ?assertEqual("serverA", concha:lookup("Venus", Ring)),
+    ?assertEqual("serverA", concha:lookup("Jupiter", Ring)),
+    ?assertEqual("serverC", concha:lookup("Europa", Ring)).
 
 remove_with_vnodes_test() ->
     Nodes = ["serverA", "serverB", "serverC", "serverD"],
     Ring = concha:remove("serverB", concha:new(3, Nodes)),
-    ?assertEqual("serverC", concha:lookup("mars", Ring)),
-    ?assertEqual("serverA", concha:lookup("venus", Ring)),
-    ?assertEqual("serverC", concha:lookup("saturn", Ring)),
-    ?assertEqual("serverD", concha:lookup("europa", Ring)),
-    ?assertEqual("serverC", concha:lookup("pluto", Ring)).
+    ?assertEqual("serverA", concha:lookup("Mars", Ring)),
+    ?assertEqual("serverA", concha:lookup("Venus", Ring)),
+    ?assertEqual("serverA", concha:lookup("Jupiter", Ring)),
+    ?assertEqual("serverD", concha:lookup("Europa", Ring)),
+    ?assertEqual("serverC", concha:lookup("Pluto", Ring)).
 
 size_test() ->
     ?assertEqual(0, concha:size(concha:new([]))),
